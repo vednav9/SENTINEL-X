@@ -1,0 +1,10 @@
+google-cloud-aiplatform
+google-generativeai
+pydantic
+python-dotenv
+termcolor
+faker
+structlog
+fastapi
+uvicorn
+websockets
