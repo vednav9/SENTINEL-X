@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "clsx": "latest",
-    "framer-motion": "latest",
+    "framer-motion": "^12.29.0",
     "lucide-react": "latest",
     "mermaid": "latest",
     "next": "latest",
@@ -20,7 +20,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.18",
-    "@types/node": "latest",
+    "@types/node": "^25.0.10",
     "@types/react": "latest",
     "@types/react-dom": "latest",
     "autoprefixer": "latest",
