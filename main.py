@@ -19,6 +19,15 @@ from memory.event_bus import bus
 # Load environment variables
 load_dotenv()
 
+async def run_simulation():
+    """Run a single simulation iteration for the API"""
+    try:
+        simulator = AttackSimulator()
+        simulator.run_scenario_brute_force()
+        cprint("[Simulation] Brute force attack scenario executed", "yellow")
+    except Exception as e:
+        cprint(f"[Simulation] Error: {e}", "red")
+
 async def main():
     cprint("\n" + "="*80, "cyan", attrs=["bold"])
     cprint("🔐 SENTINEL-X: Autonomous AI Security System", "cyan", attrs=["bold"])
