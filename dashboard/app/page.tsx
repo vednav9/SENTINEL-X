@@ -6,81 +6,210 @@ import LiveLogFeed from "@/components/LiveLogFeed";
 import ThreatMonitor from "@/components/ThreatMonitor";
 import AgentBrain from "@/components/AgentBrain";
 import AttackGraph from "@/components/AttackGraph";
-import { Copy, Terminal, ShieldAlert, Cpu, Activity } from "lucide-react";
+import StatCard from "@/components/StatCard";
+import { Copy, Terminal, ShieldAlert, Cpu, Activity, AlertTriangle, Zap, Clock } from "lucide-react";
 
 export default function Dashboard() {
     const [isConnected, setIsConnected] = useState(false);
+    const [stats, setStats] = useState({
+        threatsDetected: 0,
+        eventsProcessed: 0,
+        agentsActive: 5,
+        systemUptime: "24h 15m"
+    });
 
     useEffect(() => {
-        // Check connection status logic can be added here
         setIsConnected(true);
+        // WebSocket for real-time updates can be added here
+        const ws = new WebSocket("ws://localhost:8000/events");
+        
+        ws.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                if (data.type === "SuspiciousEvent") {
+                    setStats(prev => ({
+                        ...prev,
+                        threatsDetected: prev.threatsDetected + 1
+                    }));
+                }
+            } catch (e) {
+                // Handle parse errors
+            }
+        };
+
+        return () => ws.close();
     }, []);
 
     return (
-        <main className="min-h-screen p-6 bg-black text-green-500 overflow-hidden font-mono bg-[url('/grid.png')] bg-repeat opacity-90">
+        <main className="min-h-screen bg-black text-green-500 overflow-auto font-mono">
             {/* Header */}
-            <header className="flex justify-between items-center mb-6 border-b border-green-800 pb-4">
-                <h1 className="text-4xl font-bold flex items-center gap-3 tracking-tighter shadow-green-500 text-glow">
-                    <ShieldAlert className="w-10 h-10 text-red-500 animate-pulse" />
-                    SENTINEL-X <span className="text-sm border border-green-600 px-2 py-0.5 rounded text-green-300">v2.0</span>
-                </h1>
-                <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-2">
-                        <span className={`w-3 h-3 rounded-full ${isConnected ? "bg-green-500 animate-ping" : "bg-red-500"}`}></span>
-                        <span className="text-sm">{isConnected ? "SYSTEM ONLINE" : "OFFLINE"}</span>
+            <header className="sticky top-0 z-20 bg-black/95 border-b border-green-900 backdrop-blur-sm">
+                <div className="p-6">
+                    <div className="flex justify-between items-start mb-6">
+                        <div>
+                            <h1 className="text-3xl font-bold flex items-center gap-3 mb-2">
+                                <ShieldAlert className="w-8 h-8 text-red-500 animate-pulse" />
+                                SECURITY OPERATIONS CENTER
+                            </h1>
+                            <p className="text-green-700 text-sm">Real-time Threat Detection & Response</p>
+                        </div>
+                        <div className="text-right">
+                            <div className="flex items-center gap-2 justify-end mb-2">
+                                <span className={`w-3 h-3 rounded-full ${isConnected ? "bg-green-500 animate-pulse" : "bg-red-500"}`}></span>
+                                <span className="text-sm font-mono">{isConnected ? "● ONLINE" : "● OFFLINE"}</span>
+                            </div>
+                            <div className="text-xs text-green-700">{new Date().toLocaleString()}</div>
+                        </div>
                     </div>
-                    <div className="text-xs text-green-700">Protected by Autonomous Agents</div>
+
+                    {/* Stats Row */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <StatCard 
+                            icon={AlertTriangle}
+                            label="THREATS DETECTED"
+                            value={stats.threatsDetected}
+                            color="red"
+                        />
+                        <StatCard 
+                            icon={Activity}
+                            label="EVENTS PROCESSED"
+                            value={stats.eventsProcessed}
+                            color="orange"
+                        />
+                        <StatCard 
+                            icon={Cpu}
+                            label="AGENTS ACTIVE"
+                            value={stats.agentsActive}
+                            color="blue"
+                        />
+                        <StatCard 
+                            icon={Clock}
+                            label="SYSTEM UPTIME"
+                            value={stats.systemUptime}
+                            color="cyan"
+                        />
+                    </div>
                 </div>
             </header>
 
-            {/* Grid Layout */}
-            <div className="grid grid-cols-12 gap-6 h-[85vh]">
-
-                {/* Left Column: Logs & Intel */}
-                <div className="col-span-3 flex flex-col gap-6 h-full">
-                    <div className="bg-black/50 border border-green-800 p-4 rounded-lg flex-1 overflow-hidden cyber-neoneffect relative">
-                        <div className="flex items-center gap-2 mb-2 text-green-300 border-b border-green-900 pb-2">
-                            <Terminal size={16} /> REACTIVE LOGS
+            {/* Main Content */}
+            <div className="p-6 space-y-6">
+                {/* Top Row: Attack Graph & Threat Monitor */}
+                <motion.div 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="grid grid-cols-1 lg:grid-cols-3 gap-6"
+                >
+                    {/* Attack Graph - Takes 2 columns */}
+                    <div className="lg:col-span-2 bg-black/50 border border-green-900 rounded-lg p-6 hover:border-green-700 transition-colors">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                            <h2 className="text-lg font-bold text-green-400">ATTACK VECTOR GRAPH</h2>
+                            <span className="text-xs bg-green-900/30 px-2 py-1 rounded ml-auto border border-green-900">REAL-TIME</span>
                         </div>
-                        <LiveLogFeed />
-                    </div>
-                    <div className="bg-black/50 border border-green-800 p-4 rounded-lg h-1/3 cyber-neoneffect">
-                        <div className="flex items-center gap-2 mb-2 text-green-300 border-b border-green-900 pb-2">
-                            <Activity size={16} /> SYSTEM METRICS
-                        </div>
-                        {/* Placeholder for metrics */}
-                        <div className="grid grid-cols-2 gap-4 text-xs">
-                            <div className="border border-green-900 p-2">CPU: 12%</div>
-                            <div className="border border-green-900 p-2">MEM: 4.2GB</div>
-                            <div className="border border-green-900 p-2">NET: 1.2 Gbps</div>
-                            <div className="border border-green-900 p-2">AGENTS: 5 Active</div>
+                        <div className="h-96 bg-black/30 rounded border border-green-900/30 overflow-hidden">
+                            <AttackGraph />
                         </div>
                     </div>
-                </div>
 
-                {/* Center: Graph & Threats */}
-                <div className="col-span-6 flex flex-col gap-6 h-full">
-                    <div className="bg-black/80 border border-green-700 p-4 rounded-lg flex-1 cyber-neoneffect relative overflow-hidden">
-                        <div className="absolute top-2 left-2 px-2 py-1 bg-green-900/50 text-xs">ATTACK VECTOR GRAPH</div>
-                        <AttackGraph />
+                    {/* Agent Reasoning */}
+                    <div className="bg-black/50 border border-purple-900 rounded-lg p-6 hover:border-purple-700 transition-colors flex flex-col">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="w-3 h-3 bg-purple-500 rounded-full animate-pulse"></div>
+                            <h2 className="text-lg font-bold text-purple-400">AGENT REASONING</h2>
+                        </div>
+                        <div className="flex-1 overflow-hidden">
+                            <AgentBrain />
+                        </div>
                     </div>
+                </motion.div>
 
-                    {/* Threat Monitor below graph */}
-                    <div className="h-1/3">
+                {/* Middle Row: Threat Monitor */}
+                <motion.div 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1 }}
+                    className="bg-black/50 border border-red-900 rounded-lg p-6 hover:border-red-700 transition-colors"
+                >
+                    <div className="flex items-center gap-3 mb-4">
+                        <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+                        <h2 className="text-lg font-bold text-red-400">THREAT MONITOR</h2>
+                        <span className="text-xs bg-red-900/30 px-2 py-1 rounded ml-auto border border-red-900">CRITICAL ALERTS</span>
+                    </div>
+                    <div className="h-48 bg-black/30 rounded border border-red-900/30 overflow-auto">
                         <ThreatMonitor />
                     </div>
-                </div>
+                </motion.div>
 
-                {/* Right: Agent Brain */}
-                <div className="col-span-3 h-full">
-                    <div className="bg-black/50 border border-purple-800 p-4 rounded-lg h-full cyber-neoneffect flex flex-col">
-                        <div className="flex items-center gap-2 mb-4 text-purple-400 border-b border-purple-900 pb-2">
-                            <Cpu size={18} /> AGENT REASONING
+                {/* Bottom Row: Logs & System Info */}
+                <motion.div 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 }}
+                    className="grid grid-cols-1 lg:grid-cols-3 gap-6"
+                >
+                    {/* Live Logs */}
+                    <div className="lg:col-span-2 bg-black/50 border border-green-900 rounded-lg p-6 hover:border-green-700 transition-colors flex flex-col">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                            <h2 className="text-lg font-bold text-green-400">LIVE LOG FEED</h2>
+                            <span className="text-xs bg-green-900/30 px-2 py-1 rounded ml-auto border border-green-900">STREAMING</span>
                         </div>
-                        <AgentBrain />
+                        <div className="flex-1 overflow-hidden bg-black/30 rounded border border-green-900/30 p-4">
+                            <LiveLogFeed />
+                        </div>
                     </div>
-                </div>
 
+                    {/* System Status */}
+                    <div className="bg-black/50 border border-cyan-900 rounded-lg p-6 hover:border-cyan-700 transition-colors">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="w-3 h-3 bg-cyan-500 rounded-full animate-pulse"></div>
+                            <h2 className="text-lg font-bold text-cyan-400">SYSTEM STATUS</h2>
+                        </div>
+                        <div className="space-y-4 text-sm">
+                            <div className="bg-black/30 p-3 rounded border border-cyan-900/30">
+                                <p className="text-cyan-700 text-xs mb-1">CPU USAGE</p>
+                                <div className="flex items-center justify-between">
+                                    <div className="w-full h-2 bg-cyan-900/20 rounded-full overflow-hidden mr-2">
+                                        <div className="h-full bg-gradient-to-r from-cyan-500 to-cyan-400 w-1/3 rounded-full" />
+                                    </div>
+                                    <span className="text-cyan-400 font-mono">12%</span>
+                                </div>
+                            </div>
+
+                            <div className="bg-black/30 p-3 rounded border border-cyan-900/30">
+                                <p className="text-cyan-700 text-xs mb-1">MEMORY USAGE</p>
+                                <div className="flex items-center justify-between">
+                                    <div className="w-full h-2 bg-cyan-900/20 rounded-full overflow-hidden mr-2">
+                                        <div className="h-full bg-gradient-to-r from-cyan-500 to-cyan-400 w-1/2 rounded-full" />
+                                    </div>
+                                    <span className="text-cyan-400 font-mono">4.2GB</span>
+                                </div>
+                            </div>
+
+                            <div className="bg-black/30 p-3 rounded border border-cyan-900/30">
+                                <p className="text-cyan-700 text-xs mb-1">NETWORK THROUGHPUT</p>
+                                <div className="flex items-center justify-between">
+                                    <div className="w-full h-2 bg-cyan-900/20 rounded-full overflow-hidden mr-2">
+                                        <div className="h-full bg-gradient-to-r from-cyan-500 to-cyan-400 w-2/3 rounded-full" />
+                                    </div>
+                                    <span className="text-cyan-400 font-mono">1.2 Gbps</span>
+                                </div>
+                            </div>
+
+                            <div className="bg-black/30 p-3 rounded border border-green-900/30">
+                                <p className="text-green-700 text-xs mb-1">AGENTS RUNNING</p>
+                                <div className="flex gap-2 flex-wrap">
+                                    {["Detection", "Intel", "Response", "Learning", "RootCause"].map((agent, i) => (
+                                        <span key={i} className="text-xs bg-green-900/30 px-2 py-1 rounded border border-green-700">
+                                            {agent}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </motion.div>
             </div>
         </main>
     );

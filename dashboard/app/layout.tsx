@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import Navigation from "@/components/Navigation";
 
 export const metadata: Metadata = {
     title: "SENTINEL-X DASHBOARD",
@@ -13,8 +14,13 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en">
-            <body className="antialiased bg-black text-green-500 selection:bg-green-900 selection:text-white">
-                {children}
+            <body className="antialiased bg-black text-green-500 selection:bg-green-900 selection:text-white overflow-hidden">
+                <div className="flex h-screen">
+                    <Navigation />
+                    <div className="flex-1 overflow-auto">
+                        {children}
+                    </div>
+                </div>
             </body>
         </html>
     );
